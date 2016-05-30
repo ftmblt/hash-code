@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define TABLO_SIZE 11
+#define MULTIPLIER 3
+
+struct CELL{
+	char *soyad;
+	struct CELL *next;
+};
+int lookup(char *soyad, struct CELL *l){
+	if(l==NULL) return;
+	else if (!strcmp(soyad, l->soyad)) return 1;
+	else return lookup(soyad, l->soyad);
+}
+int insert(char *soyad, struct CELL **l){
+	if(*l=NULL){
+		(*l)=(CELL *)malloc(sizeof(struct CELL));
+		(*l)->soyad=(char *)malloc(strlen(soyad)+1)*sizeof(char));
+		strcpy((*l)->soyad, soyad);
+		(*l)->next=NULL;
+		return 1;
+	}
+	else if (strcmp(soyad,(*l)->soyad)) return insert(soyad,&((*l)->next));
+	else return 0;
+}
+void print_list(struct CELL *l){
+	if(l!=NULL){
+		printf("%s", l->soyad);
+		print_list(l->next);
+	}
+}
+struct table_node{
+	int count;
+	struct CELL *header;
+};
+struct hash_tablosu{
+	struct table_node *tablo_basi;
+	int tablo_uzunlugu;
+};
+unsigned hash(char *s){
+	int i=0;
+	unsigned int value=0;
+	while(s[i]!='\0'){
+		value=(s[i]+MULTIPLIER* value)%TABLE_SIZE;
+		i++;
+	}
+	return value;
+}
+table_node *initialize_hash_table(){
+	int i;
+	struct table_node *hash_table;
+	hash_table=(struct table_node *)malloc(TABLE_SIZE *sizeof(struct table_node));
+	if(hash_table==NULL){
+		printf("Hash tablosu için gerekli yer ayrılamadı.");
+		exit(1);
+	}
+	for(i=0;i<TABLE_SIZE;i++){
+		(hash_table+i)->count=0;
+		(hash_table+i)->header=NULL;
+	}
+	return hash_table;
+}
+void insert_hash_table(struct table_node *hash_table, char *soyad){
+	insert(soyad,&(hash_table+hash(soyad))->header);
+	hash_table[hash(soyad)].count++;
+}
+void hash_table_print(table_node *hash_table){
+	if(hash_table!=NULL){
+		int i;
+		for(i=0;i<TABLO_SIZE;i++){
+			printf("%5d : (%2d)", i, (hash_table+i)->count);
+			print_list((hash_table+i)->header);
+			printf("\n");
+		}
+	}
+}
+int main(int argc, char *argv[]) {
+	struct hash_tablosu htable;
+	htable.tablo_basi=initialize_hash_table();
+	htable.tablo_uzunlugu=TABLE_SIZE;
+	insert_hash_table(htable.tablo_basi, "istanbul");
+	hash_table_print(htable.tablo_basi);
+	return 0;
+}
+
